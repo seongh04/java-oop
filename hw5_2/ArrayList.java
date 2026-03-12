@@ -16,7 +16,7 @@ public class ArrayList<E> implements List<E> {
         for (int i = 0; i < size; i++) {
             result += data[i];
 
-            if(i < size - 1)
+            if (i < size - 1)
                 result += ", ";
         }
 
@@ -26,16 +26,56 @@ public class ArrayList<E> implements List<E> {
 
     @Override
     public void add(E object) {
+        if (size == data.length) {
+            resize();
+        }
+
         data[size++] = object;
     }
 
     @Override
-    public E get(int index) {
-        if (isNotWithinBounds(index)) {
-            throw new IndexOutOfBoundsException("Index: " + index + " Size: " + size);
+    public void add(int index, E object) {
+        checkBounds(index, true);
+
+        if (size == data.length) {
+            resize();
         }
 
+        if (index != size) {
+            System.arraycopy(data, index, data, index + 1, size - index);
+        }
+
+        data[index] = object;
+        size++;
+    }
+
+    @Override
+    public E get(int index) {
+        checkBounds(index, false);
+
         return data[index];
+    }
+
+    @Override
+    public E remove(int index) {
+        checkBounds(index, false);
+
+        E removedItem = data[index];
+
+        for (int i = index; i < size - 1; i++) {
+            data[i] = data[i + 1];
+        }
+
+        data[size - 1] = null;
+        size--;
+
+        return removedItem;
+    }
+
+    @Override
+    public void removeAll() {
+        data = (E[]) new Object[12];
+        size = 0;
     }
 
     @Override
@@ -43,11 +83,27 @@ public class ArrayList<E> implements List<E> {
         return size;
     }
 
-    private boolean isWithinBounds(int index) {
-        return index >= 0 && index < size;
+    private void resize() {
+        E[] newData = (E[]) new Object[size + 12];
+
+        for (int i = 0; i < size; i++) {
+            newData[i] = data[i];
+        }
+
+        data = newData;
     }
 
-    private boolean isNotWithinBounds(int index) {
-        return index < 0 || index >= size;
+    private void checkBounds(int index, boolean allowLast) {
+        if (isNotWithinBounds(index, allowLast)) {
+            throw new IndexOutOfBoundsException("Index: " + index + " Size: " + size);
+        }
+    }
+
+    private boolean isNotWithinBounds(int index, boolean allowLast) {
+        if (allowLast) {
+            return index < 0 || index > size;
+        } else {
+            return index < 0 || index >= size;
+        }
     }
 }
